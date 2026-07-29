@@ -37,6 +37,10 @@ async function serveHtml(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/') {
+      return Response.redirect(new URL('/environmental-intelligence', url), 302);
+    }
+
     if (url.pathname.startsWith('/api/')) {
       return json({ error: { code: 'STATIC_RUNTIME', message: 'Use browser-side live provider' } }, 404);
     }
@@ -47,7 +51,7 @@ export default {
     if (assetResponse.status === 404 && (acceptsHtml || isRoute)) {
       return serveHtml(request, env);
     }
-    if ((url.pathname === '/' || url.pathname === '/index.html') && assetResponse.ok) {
+    if (url.pathname === '/index.html' && assetResponse.ok) {
       const html = (await assetResponse.text()).replaceAll(ORIGIN_TOKEN, url.origin);
       const headers = new Headers(assetResponse.headers);
       headers.set('content-type', 'text/html; charset=utf-8');
