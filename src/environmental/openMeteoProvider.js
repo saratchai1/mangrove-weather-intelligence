@@ -1,4 +1,5 @@
 import { HORIZONS } from './config.js';
+import { fetchWithTimeout } from './fetchWithTimeout.js';
 
 const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const HOURLY_FIELDS = [
@@ -291,10 +292,12 @@ export class OpenMeteoEnvironmentalProvider {
     cacheTtlSeconds = 900,
     endpoint = OPEN_METEO_FORECAST_URL,
     fetchImpl = fetch,
+    requestTimeoutMs = 10000,
   } = {}) {
     this.cacheTtlSeconds = cacheTtlSeconds;
     this.endpoint = endpoint;
     this.fetchImpl = (...args) => fetchImpl(...args);
+    this.requestTimeoutMs = requestTimeoutMs;
     this.mode = 'LIVE';
     this.source = 'Open-Meteo Forecast API';
   }
@@ -344,7 +347,12 @@ export class OpenMeteoEnvironmentalProvider {
       let lastError = null;
       for (let attempt = 0; attempt < 3 && !payloads; attempt += 1) {
         try {
-          const response = await this.fetchImpl(url);
+          const response = await fetchWithTimeout(
+            this.fetchImpl,
+            url,
+            {},
+            this.requestTimeoutMs,
+          );
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const payload = await response.json();
           payloads = Array.isArray(payload) ? payload : [payload];

@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from './fetchWithTimeout.js';
+
 const GDACS_LATEST_URL = 'https://www.gdacs.org/gdacsapi/api/Events/geteventlist/latest';
 
 function toRadians(value) {
@@ -86,11 +88,15 @@ export async function getPortfolioStormContext({
   asOf = new Date(),
   fetchImpl = fetch,
   endpoint = GDACS_LATEST_URL,
+  requestTimeoutMs = 8000,
 } = {}) {
   try {
-    const response = await fetchImpl(endpoint, {
-      headers: { Accept: 'application/json' },
-    });
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      endpoint,
+      { headers: { Accept: 'application/json' } },
+      requestTimeoutMs,
+    );
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const storms = parseGdacsStorms(await response.json(), plots, asOf);
     const regional = storms.filter((storm) => storm.influenceZone === 'REGIONAL');
@@ -115,4 +121,3 @@ export async function getPortfolioStormContext({
     };
   }
 }
-

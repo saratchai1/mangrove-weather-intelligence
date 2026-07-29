@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DeterministicMockEnvironmentalProvider } from '../src/environmental/mockProvider.js';
+import { fetchWithTimeout } from '../src/environmental/fetchWithTimeout.js';
 import { assessOperationalRisk, metricLevel } from '../src/environmental/riskEngine.js';
 import { OPERATIONAL_THRESHOLDS } from '../src/environmental/config.js';
 import { getVisiblePlots } from '../src/environmental/plotRepository.js';
@@ -47,6 +48,16 @@ test('plot without coordinates remains in the model with UNKNOWN risk', async ()
   assert.deepEqual(
     Object.values(assessment.impacts).map((item) => item.level),
     ['UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN'],
+  );
+});
+
+test('network timeout releases a stalled external provider', async () => {
+  const stalledFetch = async (_input, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+  await assert.rejects(
+    fetchWithTimeout(stalledFetch, 'https://example.invalid', {}, 5),
+    /หมดเวลารอผู้ให้บริการ/,
   );
 });
 
