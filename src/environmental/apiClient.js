@@ -1,4 +1,5 @@
 import { ENVIRONMENTAL_API_ROUTES, getEnvironmentalOverview } from './service.js';
+import { withBasePath } from '../utils/basePath.js';
 
 export async function fetchEnvironmentalOverview({
   horizon = '24h',
@@ -10,10 +11,10 @@ export async function fetchEnvironmentalOverview({
   if (forceRefresh) query.set('refresh', '1');
 
   try {
-    const response = await fetch(`${ENVIRONMENTAL_API_ROUTES.overview}?${query}`);
+    const response = await fetch(`${withBasePath(ENVIRONMENTAL_API_ROUTES.overview)}?${query}`);
     const contentType = response.headers.get('content-type') || '';
     if (response.ok && contentType.includes('application/json')) return response.json();
-    if (response.status !== 404) {
+    if (response.status !== 404 && contentType.includes('application/json')) {
       const payload = await response.json().catch(() => ({}));
       throw new Error(payload.error?.message || 'โหลด Environmental Intelligence API ไม่สำเร็จ');
     }

@@ -1,5 +1,6 @@
 import { projects } from '../portfolioData.js';
 import { getRepresentativePoint } from '../utils/geometry.js';
+import { withBasePath } from '../utils/basePath.js';
 
 const spatialProjects = () => projects.filter((project) => project.spatialAvailable);
 
@@ -14,7 +15,7 @@ export async function getVisiblePlots({
   canViewPlot = () => true,
 } = {}) {
   const projectRecords = await Promise.all(spatialProjects().map(async (appProject) => {
-    const root = `/data/${appProject.id}`;
+    const root = withBasePath(`/data/${appProject.id}`);
     const [projectMetadata, geojson] = await Promise.all([
       fetchJson(`${root}/project.json`, fetchImpl),
       fetchJson(`${root}/planting-areas.geojson`, fetchImpl),

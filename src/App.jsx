@@ -19,6 +19,11 @@ import SpatialTwin, { ALL_STATUS } from './SpatialTwin';
 import Year2WarRoom from './Year2WarRoom';
 import EnvironmentalIntelligence from './EnvironmentalIntelligence';
 import {
+  ENVIRONMENTAL_PATH,
+  isEnvironmentalPath,
+  SITE_ROOT_PATH,
+} from './utils/basePath';
+import {
   adjustedSummary,
   changeSummary,
   failPlots,
@@ -516,7 +521,7 @@ function GroupStatusChart() {
 function App() {
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0].id);
   const [activeView, setActiveView] = useState(
-    window.location.pathname === '/environmental-intelligence' ? 'environmental' : 'portfolio',
+    isEnvironmentalPath(window.location.pathname) ? 'environmental' : 'portfolio',
   );
   const [mapProjectId, setMapProjectId] = useState(projects[0].id);
   const [mapStatusFilter, setMapStatusFilter] = useState(ALL_STATUS);
@@ -526,7 +531,7 @@ function App() {
   useEffect(() => {
     function handlePopState() {
       setActiveView(
-        window.location.pathname === '/environmental-intelligence' ? 'environmental' : 'portfolio',
+        isEnvironmentalPath(window.location.pathname) ? 'environmental' : 'portfolio',
       );
     }
     window.addEventListener('popstate', handlePopState);
@@ -534,8 +539,8 @@ function App() {
   }, []);
 
   function openDigitalTwin(projectId = selectedProjectId, status = ALL_STATUS, plotId = '') {
-    if (window.location.pathname !== '/') {
-      window.history.pushState({}, '', '/');
+    if (window.location.pathname !== SITE_ROOT_PATH) {
+      window.history.pushState({}, '', SITE_ROOT_PATH);
     }
     setMapProjectId(projectId);
     setMapStatusFilter(status);
@@ -549,7 +554,7 @@ function App() {
       openDigitalTwin(selectedProjectId);
       return;
     }
-    const nextPath = viewId === 'environmental' ? '/environmental-intelligence' : '/';
+    const nextPath = viewId === 'environmental' ? ENVIRONMENTAL_PATH : SITE_ROOT_PATH;
     if (window.location.pathname !== nextPath) {
       window.history.pushState({}, '', nextPath);
     }
