@@ -1,0 +1,144 @@
+{
+  "id": "g2-siam-tc",
+  "officialName": "โครงการฟื้นฟูป่าชายเลนเพื่อระบบนิเวศที่ยั่งยืนของประเทศไทย (กลุ่ม 2)",
+  "officialNameEn": "Mangrove Reforestation for Sustainable Environment in Thailand (Group 2)",
+  "standard": "Standard T-VER",
+  "status": "ขึ้นทะเบียน",
+  "projectDeveloper": "กรมทรัพยากรทางทะเลและชายฝั่ง",
+  "coDevelopers": [
+    "บริษัท สยาม ทีซี เทคโนโลยี จำกัด"
+  ],
+  "registrationDate": "2024-08-28",
+  "registrationDateThai": "28 สิงหาคม 2567",
+  "creditPeriod": {
+    "start": "2023-11-15",
+    "end": "2033-11-14",
+    "labelThai": "15 พฤศจิกายน 2566 - 14 พฤศจิกายน 2576",
+    "years": 10
+  },
+  "estimatedReductionTco2ePerYear": 84652,
+  "estimatedReductionTco2eCreditPeriod": 846521,
+  "plotCount": 50,
+  "provinceCount": 6,
+  "provinces": [
+    "กระบี่",
+    "พังงา",
+    "ภูเก็ต",
+    "ระนอง",
+    "สตูล",
+    "สมุทรสงคราม"
+  ],
+  "officialParticipatingAreaRai": 9005.55,
+  "geometryValidation": {
+    "calculatedAreaRai": 9005.56,
+    "differenceRai": 0.01,
+    "note": "ค่าพื้นที่หลักยึดตาม PDD/workbook; polygon ใช้เป็นชั้นตรวจสอบ geometry เท่านั้น"
+  },
+  "spatialCoverage": {
+    "footprintFeatureCount": 50,
+    "verifiedPlotCrosswalkCount": 2,
+    "verifiedPlotIds": [
+      "65-STC",
+      "81-STC"
+    ],
+    "tentativePlotCrosswalkCount": 48,
+    "tentativePlotIds": [
+      "38-STC",
+      "39-STC",
+      "40-STC",
+      "41-STC",
+      "42-STC",
+      "43-STC",
+      "44-STC",
+      "45-STC",
+      "46-STC",
+      "47-STC",
+      "48-STC",
+      "49-STC",
+      "50-STC",
+      "51-STC",
+      "52-STC",
+      "53-STC",
+      "54-STC",
+      "55-STC",
+      "59-STC",
+      "62-STC",
+      "63-STC",
+      "64-STC",
+      "67-STC",
+      "68-STC",
+      "69-STC",
+      "70-STC",
+      "71-STC",
+      "72-STC",
+      "73-STC",
+      "74-STC",
+      "75-STC",
+      "76-STC",
+      "77-STC",
+      "78-STC",
+      "79-STC",
+      "80-STC",
+      "88-STC",
+      "89-STC",
+      "90(1)-STC",
+      "90-STC",
+      "91-STC",
+      "92-STC",
+      "93-STC",
+      "94-STC",
+      "95-STC",
+      "96-STC",
+      "97-STC",
+      "98-STC"
+    ],
+    "unmatchedBoundaryFeatureCount": 0,
+    "note": "Boundary_MOC2 ส่วนใหญ่ไม่มีรหัสแปลงทางการใน attribute; polygon ที่เหลือจึงถูกเสนอจับคู่แบบ tentative จากจังหวัดและพื้นที่ใกล้ที่สุด"
+  },
+  "sources": [
+    {
+      "type": "Certificate",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2 สยามทีซี  ขึ้นทะเบียน/Standard T-VER  Cer ขึ้นทะเบียนโครงการ กลุ่ม 2  บ.สยามทีซีฯ.pdf",
+      "verifiedFields": [
+        "officialName",
+        "status",
+        "registrationDate",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "PDD",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2 สยามทีซี  ขึ้นทะเบียน/MOC2 standard_V2(22-8-24).pdf",
+      "verifiedFields": [
+        "officialName",
+        "projectDeveloper",
+        "coDevelopers",
+        "plotCount",
+        "officialParticipatingAreaRai",
+        "creditPeriod",
+        "estimatedReductionTco2eCreditPeriod"
+      ]
+    },
+    {
+      "type": "Calculation workbook",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2 สยามทีซี  ขึ้นทะเบียน/Cal_MOC2-Standard-V02-no_soil.xlsx",
+      "verifiedFields": [
+        "officialPlotList",
+        "officialParticipatingAreaRai"
+      ]
+    },
+    {
+      "type": "Shapefile",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2 สยามทีซี  ขึ้นทะเบียน/Shpfile/Boundary",
+      "verifiedFields": [
+        "geometry",
+        "81-STC plot crosswalk"
+      ],
+      "tentativeFields": [
+        "49 Boundary_MOC2 plot crosswalks by province and nearest area"
+      ]
+    }
+  ],
+  "generatedAt": "2026-05-27"
+}

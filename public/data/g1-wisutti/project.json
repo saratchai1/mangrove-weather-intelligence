@@ -1,0 +1,78 @@
+{
+  "id": "g1-wisutti",
+  "officialName": "โครงการปลูกป่าชายเลนช่วยโลกลดก๊าซเรือนกระจกในประเทศไทย (กลุ่ม 1)",
+  "officialNameEn": "Greenhouse Gas Reduction with Mangrove Reforestation in Thailand (Group 1)",
+  "standard": "Premium T-VER",
+  "status": "ขึ้นทะเบียน",
+  "projectDeveloper": "กรมทรัพยากรทางทะเลและชายฝั่ง",
+  "coDevelopers": [
+    "บริษัท สยาม ทีซี เทคโนโลยี จำกัด",
+    "บริษัท วิสุทธิ คอนซัลแตนท์ จำกัด"
+  ],
+  "registrationDate": "2024-06-21",
+  "registrationDateThai": "21 มิถุนายน 2567",
+  "creditPeriod": {
+    "start": "2023-10-01",
+    "end": "2038-09-30",
+    "labelThai": "1 ตุลาคม 2566 - 30 กันยายน 2581",
+    "years": 15
+  },
+  "estimatedReductionTco2ePerYear": 11315,
+  "estimatedReductionTco2eCreditPeriod": 169725,
+  "plotCount": 40,
+  "provinceCount": 7,
+  "provinces": [
+    "กระบี่",
+    "ตราด",
+    "นครศรีธรรมราช",
+    "ปัตตานี",
+    "พังงา",
+    "ระยอง",
+    "สตูล"
+  ],
+  "officialParticipatingAreaRai": 1195.64,
+  "geometryValidation": {
+    "calculatedAreaRai": 1195.84,
+    "differenceRai": 0.2,
+    "note": "ค่าพื้นที่แสดงผลหลักยึดตาม PDD workbook; ค่าคำนวณจาก polygon ใช้สำหรับตรวจสอบ geometry เท่านั้น"
+  },
+  "sources": [
+    {
+      "type": "PDD",
+      "file": "Company-data/T-VER  premium กลุ่ม 1  สยามและวิสุทธิ  ขึ้นทะเบียน/T-VER-P-F003-PDD Ver 02-MOC1-VSD-30-04-2024.pdf",
+      "verifiedFields": [
+        "officialName",
+        "plotCount",
+        "provinceCount",
+        "officialParticipatingAreaRai",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Certificate",
+      "file": "Company-data/T-VER  premium กลุ่ม 1  สยามและวิสุทธิ  ขึ้นทะเบียน/Premium T-VER Cer 3 2567-3  VSD&STC กลุ่ม 1.pdf",
+      "verifiedFields": [
+        "officialName",
+        "registrationDate",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Calculation workbook",
+      "file": "Company-data/T-VER  premium กลุ่ม 1  สยามและวิสุทธิ  ขึ้นทะเบียน/VSD_MOC1-30-04-24.xlsx",
+      "verifiedFields": [
+        "plots",
+        "officialParticipatingAreaRai"
+      ]
+    },
+    {
+      "type": "Shapefile",
+      "file": "Company-data/T-VER  premium กลุ่ม 1  สยามและวิสุทธิ  ขึ้นทะเบียน/Shapefile",
+      "verifiedFields": [
+        "geometry"
+      ]
+    }
+  ],
+  "generatedAt": "2026-05-27"
+}

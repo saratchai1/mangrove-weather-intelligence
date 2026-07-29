@@ -1,0 +1,106 @@
+{
+  "id": "g2-wisutti",
+  "officialName": "โครงการปลูกป่าชายเลนช่วยโลกลดก๊าซเรือนกระจกในประเทศไทย (กลุ่ม 2)",
+  "officialNameEn": "Greenhouse Gas Reduction with Mangrove Reforestation in Thailand (Group 2)",
+  "standard": "Standard T-VER",
+  "status": "ขึ้นทะเบียน",
+  "projectDeveloper": "กรมทรัพยากรทางทะเลและชายฝั่ง",
+  "coDevelopers": [
+    "บริษัท สยาม ทีซี เทคโนโลยี จำกัด",
+    "บริษัท วิสุทธิ คอนซัลแตนท์ จำกัด"
+  ],
+  "registrationDate": "2024-08-28",
+  "registrationDateThai": "28 สิงหาคม 2567",
+  "creditPeriod": {
+    "start": "2024-05-31",
+    "end": "2034-05-30",
+    "labelThai": "31 พฤษภาคม 2567 - 30 พฤษภาคม 2577",
+    "years": 10
+  },
+  "estimatedReductionTco2ePerYear": 63689,
+  "estimatedReductionTco2eCreditPeriod": 636899,
+  "plotCount": 22,
+  "provinceCount": 8,
+  "provinces": [
+    "กระบี่",
+    "ชุมพร",
+    "ตรัง",
+    "ปัตตานี",
+    "พังงา",
+    "ภูเก็ต",
+    "สตูล",
+    "สมุทรสงคราม"
+  ],
+  "officialParticipatingAreaRai": 6775.53,
+  "approvedAreaRai": 7037.73,
+  "officialWaterAreaRai": 262.2,
+  "samplePlot": {
+    "count": 128,
+    "sourceDateThai": "24 มิถุนายน 2567",
+    "endpoint": "sample-plots.geojson",
+    "note": "แปลงตัวอย่างเป็น monitoring overlay ไม่รวมในพื้นที่เข้าร่วมโครงการ"
+  },
+  "geometryValidation": {
+    "scope": "non-water-footprints",
+    "excludedClass": "W",
+    "officialComparisonAreaRai": 6775.53,
+    "calculatedAreaRai": 6775.54,
+    "calculatedWaterAreaRai": 212.44,
+    "officialWaterAreaRai": 262.2,
+    "waterGeometryDifferenceRai": -49.76,
+    "differenceRai": 0.01,
+    "note": "ใช้ polygon จากชั้นรวมโดยตัด Class W ซึ่งเป็นพื้นที่น้ำออก; พื้นที่น้ำบางส่วนไม่มี feature Class W แยกในชั้นรวม จึงใช้ค่า water ทางการจาก workbook เท่านั้น"
+  },
+  "sources": [
+    {
+      "type": "PDD",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2  สยามทีซี&วิสุทธิ  ขึ้นทะเบียน/T-VER-S-F001-PDD V2.1-MOC2-25-06-24 1.pdf",
+      "verifiedFields": [
+        "officialName",
+        "plotCount",
+        "provinceCount",
+        "officialParticipatingAreaRai",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Certificate",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2  สยามทีซี&วิสุทธิ  ขึ้นทะเบียน/Standard T-VER Cer ขึ้นทะเบียน กลุ่ม 2  สยามทีซีและวิสุทธิฯ.pdf",
+      "verifiedFields": [
+        "officialName",
+        "registrationDate",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Calculation workbook",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2  สยามทีซี&วิสุทธิ  ขึ้นทะเบียน/MOC2_VSD-25-06-24.xlsx",
+      "verifiedFields": [
+        "plots",
+        "approvedAreaRai",
+        "officialWaterAreaRai",
+        "officialParticipatingAreaRai",
+        "estimatedReductionTco2eCreditPeriod"
+      ]
+    },
+    {
+      "type": "Shapefile",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2  สยามทีซี&วิสุทธิ  ขึ้นทะเบียน/Shape/Shp-แปลงปลูกเสริม+น้ำ+FCD/แปลงปลูกเสริม_All_รวมน้ำ_V3_Uni.shp",
+      "verifiedFields": [
+        "geometry",
+        "waterClassExclusion",
+        "fcdAreaRaiByClass"
+      ]
+    },
+    {
+      "type": "Sample plot CSV",
+      "file": "Company-data/T-VER  Standard กลุ่ม 2  สยามทีซี&วิสุทธิ  ขึ้นทะเบียน/24-6-67(sample plot)/พิกัดแปลงตัวอย่าง_VSD.csv",
+      "verifiedFields": [
+        "samplePlotCoordinates"
+      ]
+    }
+  ],
+  "generatedAt": "2026-05-27"
+}

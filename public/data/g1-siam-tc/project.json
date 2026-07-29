@@ -1,0 +1,116 @@
+{
+  "id": "g1-siam-tc",
+  "officialName": "โครงการฟื้นฟูป่าชายเลน เพื่อระบบนิเวศที่ยั่งยืนของประเทศไทย (กลุ่ม 1)",
+  "officialNameEn": "Mangrove Reforestation for Sustainable Environment in Thailand (Group 1)",
+  "standard": "Premium T-VER",
+  "status": "ขึ้นทะเบียน",
+  "projectDeveloper": "กรมทรัพยากรทางทะเลและชายฝั่ง",
+  "coDevelopers": [
+    "บริษัท สยาม ทีซี เทคโนโลยี จำกัด"
+  ],
+  "registrationDate": "2024-06-21",
+  "registrationDateThai": "21 มิถุนายน 2567",
+  "creditPeriod": {
+    "start": "2023-10-01",
+    "end": "2038-09-30",
+    "labelThai": "1 ตุลาคม 2566 - 30 กันยายน 2581",
+    "years": 15
+  },
+  "estimatedReductionTco2ePerYear": 5739,
+  "estimatedReductionTco2eCreditPeriod": 86085,
+  "plotCount": 19,
+  "provinceCount": 8,
+  "provinces": [
+    "กระบี่",
+    "ฉะเชิงเทรา",
+    "ประจวบคีรีขันธ์",
+    "ปัตตานี",
+    "พังงา",
+    "ระยอง",
+    "สตูล",
+    "สุราษฎร์ธานี"
+  ],
+  "officialParticipatingAreaRai": 554.32,
+  "mapLayerCount": 17,
+  "spatialCoverage": {
+    "mappedOfficialPlotCount": 19,
+    "mappedOfficialAreaRai": 554.32,
+    "missingOfficialPlotCount": 0,
+    "missingOfficialAreaRai": 0,
+    "missingFootprintPlotIds": [],
+    "tentativeFootprintPlotIds": [
+      "19-STC",
+      "20-STC",
+      "36-STC",
+      "23-STC",
+      "18(1)-STC"
+    ],
+    "tentativeFootprintAreaRai": 206.58,
+    "combinedLayerMappings": [
+      {
+        "layerId": "28,29-STC",
+        "officialPlotIds": [
+          "28-STC",
+          "29-STC"
+        ]
+      },
+      {
+        "layerId": "30,31-STC",
+        "officialPlotIds": [
+          "30-STC",
+          "31-STC"
+        ]
+      }
+    ],
+    "note": "All 19 official plots are represented. Five plots are tentative reconstructed polygons from ordered boundary point DBF records because the original area .shp files are missing from the archive."
+  },
+  "geometryValidation": {
+    "scope": "all-official-plots-with-tentative-reconstructed-footprints",
+    "officialComparisonAreaRai": 554.32,
+    "calculatedAreaRai": 555.96,
+    "differenceRai": 1.64,
+    "note": "แปลง 19-STC, 20-STC, 36-STC, 23-STC และ 18(1)-STC เป็น polygon แบบ tentative จากจุดหมุดใน DBF เพราะไม่มีไฟล์ area .shp ต้นฉบับ; ใช้เพื่อดูตำแหน่ง/QA ไม่ใช่ค่าพื้นที่ทางการ"
+  },
+  "sources": [
+    {
+      "type": "PDD",
+      "file": "Company-data/T-VER premium กลุ่ม 1  สยามทีซี  ขึ้นทะเบียน/PDD_P_MOC1_V03(12-6-24).pdf",
+      "verifiedFields": [
+        "officialName",
+        "plotCount",
+        "provinceCount",
+        "officialParticipatingAreaRai",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Certificate",
+      "file": "Company-data/T-VER premium กลุ่ม 1  สยามทีซี  ขึ้นทะเบียน/Premium T-VER Cer 3 2567-2  STC กลุ่ม 1.pdf",
+      "verifiedFields": [
+        "officialName",
+        "registrationDate",
+        "creditPeriod",
+        "estimatedReductionTco2ePerYear"
+      ]
+    },
+    {
+      "type": "Calculation workbook",
+      "file": "Company-data/T-VER premium กลุ่ม 1  สยามทีซี  ขึ้นทะเบียน/excel-MOC1-predict.xlsx",
+      "verifiedFields": [
+        "plots",
+        "officialParticipatingAreaRai",
+        "estimatedReductionTco2eCreditPeriod"
+      ]
+    },
+    {
+      "type": "Shapefile archive",
+      "file": "Company-data/T-VER premium กลุ่ม 1  สยามทีซี  ขึ้นทะเบียน/MOC1_shp-file.rar",
+      "verifiedFields": [
+        "geometry",
+        "spatialCoverage"
+      ]
+    }
+  ],
+  "generatedAt": "2026-05-28"
+}
