@@ -294,7 +294,7 @@ export class OpenMeteoEnvironmentalProvider {
   } = {}) {
     this.cacheTtlSeconds = cacheTtlSeconds;
     this.endpoint = endpoint;
-    this.fetchImpl = fetchImpl;
+    this.fetchImpl = (...args) => fetchImpl(...args);
     this.mode = 'LIVE';
     this.source = 'Open-Meteo Forecast API';
   }

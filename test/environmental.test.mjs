@@ -154,7 +154,8 @@ test('GDACS cyclone parser preserves official name, alert, wind, and nearest dis
 
 test('live provider reuses one nearby weather grid for adjacent plots', async () => {
   let requestCount = 0;
-  const fetchImpl = async (url) => {
+  const fetchImpl = async function fetchForecast(url) {
+    assert.equal(this, undefined);
     requestCount += 1;
     const coordinates = new URL(url).searchParams.get('latitude').split(',');
     const payloads = coordinates.map(() => {
