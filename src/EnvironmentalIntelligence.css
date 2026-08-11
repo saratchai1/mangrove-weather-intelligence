@@ -485,6 +485,19 @@
   gap: 5px;
 }
 
+.waterlogging-map-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  color: #fff;
+  border-radius: 999px;
+  background: #b91c1c;
+  box-shadow: 0 3px 10px rgba(185, 28, 28, 0.22);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
 .map-legend-bar i {
   width: 9px;
   height: 9px;
@@ -605,6 +618,59 @@
 
 .map-forecast-stamp > small {
   color: rgba(245, 251, 247, 0.62);
+  font-size: 8px;
+}
+
+.map-waterlogging-banner {
+  position: absolute;
+  z-index: 700;
+  bottom: 28px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 270px;
+  padding: 11px 14px 11px 11px;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.97), rgba(220, 38, 38, 0.97));
+  box-shadow: 0 10px 30px rgba(69, 10, 10, 0.55), 0 0 0 4px rgba(254, 202, 202, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+.map-warning-pulse {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: #b91c1c;
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  place-items: center;
+  animation: map-warning-pulse 1.7s ease-out infinite;
+}
+
+.map-waterlogging-banner div {
+  display: grid;
+  gap: 1px;
+}
+
+.map-waterlogging-banner small {
+  color: #fecaca;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-waterlogging-banner strong {
+  font-size: 14px;
+}
+
+.map-waterlogging-banner p {
+  margin: 0;
+  color: #fff1f2;
   font-size: 8px;
 }
 
@@ -739,6 +805,115 @@
   font-size: 18px;
   font-weight: 900;
   transform-origin: center;
+}
+
+.waterlogging-plot-warning-icon {
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.waterlogging-plot-warning {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 132px;
+  padding: 6px 8px 6px 6px;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7f1d1d, #dc2626);
+  box-shadow: 0 8px 24px rgba(69, 10, 10, 0.62), 0 0 0 4px rgba(254, 202, 202, 0.46);
+  transform-origin: 50% 100%;
+  animation: waterlogging-marker-attention 1.8s ease-in-out infinite;
+}
+
+.waterlogging-plot-warning::after {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  content: '';
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  background: #b91c1c;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.waterlogging-plot-warning > i {
+  display: grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  color: #b91c1c;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 950;
+  place-items: center;
+}
+
+.waterlogging-plot-warning > span {
+  display: grid;
+  min-width: 0;
+  line-height: 1.05;
+}
+
+.waterlogging-plot-warning strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waterlogging-plot-warning b {
+  margin-top: 2px;
+  font-size: 8px;
+}
+
+.waterlogging-plot-warning small {
+  margin-top: 2px;
+  color: #fecaca;
+  font-size: 6px;
+  font-weight: 800;
+}
+
+.waterlogging-alert-polygon {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 9px rgba(220, 38, 38, 0.95));
+  animation: waterlogging-polygon-dash 1.4s linear infinite;
+}
+
+.waterlogging-alert-halo {
+  filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.95));
+  animation: waterlogging-halo 1.5s ease-in-out infinite;
+}
+
+.waterlogging-warning-tooltip {
+  min-width: 210px;
+  border-top: 5px solid #dc2626;
+}
+
+@keyframes waterlogging-polygon-dash {
+  to { stroke-dashoffset: -42; }
+}
+
+@keyframes waterlogging-halo {
+  0%, 100% { stroke-width: 3; stroke-opacity: 0.72; fill-opacity: 0.26; }
+  50% { stroke-width: 8; stroke-opacity: 1; fill-opacity: 0.5; }
+}
+
+@keyframes waterlogging-marker-attention {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.04); }
+}
+
+@keyframes map-warning-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.72); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
 .environment-map-tooltip {
@@ -1263,6 +1438,357 @@
   font-size: 9px;
 }
 
+.waterlogging-watch {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 13px;
+  padding: 17px 19px;
+  border: 1px solid #e2b84c;
+  border-radius: 16px;
+  color: #694b08;
+  background: linear-gradient(135deg, #fffbee, #fff6d8);
+  box-shadow: 0 12px 30px rgba(101, 77, 13, 0.08);
+}
+
+.waterlogging-watch.is-alert {
+  color: #7f1d1d;
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fff7f7, #fee2e2);
+  box-shadow: 0 12px 32px rgba(185, 28, 28, 0.14);
+}
+
+.risk-section-number {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  border-radius: 11px;
+  background: #173d32;
+  font-size: 17px;
+  font-weight: 950;
+  place-items: center;
+}
+
+.waterlogging-watch.is-alert > .risk-section-number {
+  background: #b91c1c;
+}
+
+.waterlogging-watch-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: rgba(217, 119, 6, 0.12);
+  place-items: center;
+}
+
+.waterlogging-watch.is-alert .waterlogging-watch-icon {
+  color: #fff;
+  background: #b91c1c;
+}
+
+.waterlogging-watch-content h2 {
+  margin: 2px 0 3px;
+  color: inherit;
+  font-size: 18px;
+}
+
+.waterlogging-alert-total {
+  display: inline-block;
+  margin: 3px 0 5px;
+  font-size: 12px;
+}
+
+.waterlogging-watch-content > p:not(.section-label) {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.waterlogging-watch-metrics,
+.waterlogging-plot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.waterlogging-watch-metrics span {
+  padding: 5px 8px;
+  border: 1px solid rgba(126, 84, 4, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  font-size: 9px;
+}
+
+.waterlogging-watch-metrics .storm-zone-status {
+  font-weight: 850;
+}
+
+.storm-zone-status.status-loading {
+  color: #805900;
+  border-color: #d8a514;
+  background: #fff4c2;
+}
+
+.storm-zone-status.status-available {
+  color: #fff;
+  border-color: #16845b;
+  background: #16845b;
+}
+
+.waterlogging-watch-metrics b {
+  font-size: 11px;
+}
+
+.waterlogging-plot-list button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  color: #6b4e12;
+  border: 1px solid #e5c56d;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.waterlogging-plot-list button:hover {
+  transform: translateY(-1px);
+}
+
+.waterlogging-plot-list button.active {
+  color: #fff;
+  border-color: #b91c1c;
+  background: #b91c1c;
+}
+
+.waterlogging-plot-list button.watching {
+  color: #704d05;
+  border-color: #d8a514;
+  background: #fff3bf;
+}
+
+.waterlogging-source {
+  display: block;
+  margin-top: 10px;
+  color: inherit;
+  opacity: 0.72;
+  font-size: 8px;
+}
+
+.weather-operations-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 20px 0 10px;
+  padding: 0 2px;
+}
+
+.weather-operations-heading h2 {
+  margin: 1px 0 3px;
+  color: #183b30;
+  font-size: 18px;
+}
+
+.weather-operations-heading > div > p:not(.section-label) {
+  margin: 0;
+  color: #64766e;
+  font-size: 10px;
+}
+
+.weather-criteria-guide {
+  margin-bottom: 13px;
+  padding: 15px 17px;
+  border: 1px solid #d8e2dc;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.weather-criteria-guide > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 11px;
+}
+
+.weather-criteria-guide > header > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #193f33;
+  font-size: 11px;
+}
+
+.weather-criteria-guide > header p {
+  margin: 0;
+  color: #73827b;
+  font-size: 8px;
+}
+
+.weather-criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.weather-criteria-grid article {
+  min-height: 94px;
+  padding: 10px;
+  border: 1px solid #e1e7e3;
+  border-top: 4px solid #87938e;
+  border-radius: 11px;
+  background: #fafcfb;
+}
+
+.weather-criteria-grid .criteria-low { border-top-color: #16845b; }
+.weather-criteria-grid .criteria-moderate { border-top-color: #d8a514; }
+.weather-criteria-grid .criteria-high { border-top-color: #e87516; }
+.weather-criteria-grid .criteria-critical { border-top-color: #d9363e; }
+
+.weather-criteria-grid p {
+  margin: 9px 0 0;
+  color: #55665e;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.weather-criteria-guide > small {
+  display: block;
+  margin-top: 9px;
+  color: #78867f;
+  font-size: 7px;
+}
+
+.storm-impact-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -3px 0 13px;
+  padding: 9px 12px;
+  color: #8a341f;
+  border-left: 3px solid #dc5a35;
+  background: #fff7ed;
+  font-size: 9px;
+}
+
+.waterlogging-detail {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  color: #72550d;
+  border: 1px solid #ead18b;
+  border-radius: 13px;
+  background: #fff9e8;
+}
+
+.waterlogging-detail.is-alert {
+  color: #8b1e1e;
+  border-color: #ef8d8d;
+  background: #fff1f1;
+}
+
+.waterlogging-detail.is-monitoring {
+  color: #765709;
+  border-color: #d8b84d;
+  background: #fff8dc;
+}
+
+.waterlogging-detail h3,
+.waterlogging-detail p {
+  margin: 2px 0;
+}
+
+.waterlogging-detail h3 { font-size: 12px; }
+.waterlogging-detail p { font-size: 9px; line-height: 1.5; }
+.waterlogging-detail small { font-size: 7px; opacity: 0.75; }
+
+.waterlogging-badge {
+  display: inline-block;
+  margin: 4px 0 1px;
+  padding: 3px 6px;
+  color: #7a5a0a;
+  border: 1px solid #e3c769;
+  border-radius: 999px;
+  background: #fff8d8;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.waterlogging-badge.is-alert {
+  color: #fff;
+  border-color: #b91c1c;
+  background: #b91c1c;
+}
+
+.priority-table tbody tr.waterlogging-alert-row {
+  box-shadow: inset 4px 0 #b91c1c;
+  background: #fff5f5;
+}
+
+.map-waterlogging-count {
+  display: block;
+  margin-top: 5px;
+  padding-top: 5px;
+  color: #fecaca;
+  border-top: 1px solid rgba(254, 202, 202, 0.3);
+  font-size: 9px;
+}
+
+.province-forecast-marker.has-waterlogging-alert .province-forecast-donut {
+  outline: 7px solid rgba(185, 28, 28, 0.96);
+  box-shadow: 0 0 0 13px rgba(254, 202, 202, 0.62), 0 10px 28px rgba(127, 29, 29, 0.62);
+  animation: province-waterlogging-attention 1.6s ease-in-out infinite;
+}
+
+.province-forecast-marker mark {
+  display: block;
+  width: max-content;
+  margin: 2px auto 0;
+  padding: 4px 8px;
+  color: #fff;
+  border-radius: 999px;
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(127, 29, 29, 0.55);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+@keyframes province-waterlogging-attention {
+  0%, 100% { outline-offset: 0; }
+  50% { outline-color: #ef4444; outline-offset: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-warning-pulse,
+  .waterlogging-plot-warning,
+  .waterlogging-alert-polygon,
+  .waterlogging-alert-halo,
+  .province-forecast-marker.has-waterlogging-alert .province-forecast-donut {
+    animation: none;
+  }
+}
+
+.waterlogging-tooltip {
+  margin-top: 5px;
+  padding-top: 4px;
+  color: #8a5d09;
+  border-top: 1px solid #e4e8e5;
+  font-weight: 800;
+}
+
+.waterlogging-tooltip.is-alert {
+  color: #b91c1c;
+}
+
 @media (max-width: 1240px) {
   .storm-banner { grid-template-columns: auto 1fr auto; }
   .storm-metrics { grid-column: 2 / 4; grid-row: 2; }
@@ -1275,6 +1801,7 @@
   .environment-workspace { grid-template-columns: 1fr; }
   .environment-detail { max-height: none; }
   .environment-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .weather-criteria-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 720px) {
@@ -1300,4 +1827,15 @@
     bottom: 8px;
     min-width: 180px;
   }
+  .map-waterlogging-banner {
+    top: 62px;
+    right: 8px;
+    bottom: auto;
+    left: 8px;
+    min-width: 0;
+  }
+  .waterlogging-watch { grid-template-columns: auto auto minmax(0, 1fr); }
+  .waterlogging-watch-content { grid-column: 1 / -1; }
+  .weather-criteria-guide > header { align-items: flex-start; flex-direction: column; }
+  .weather-criteria-grid { grid-template-columns: 1fr; }
 }

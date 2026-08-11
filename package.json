@@ -13,6 +13,7 @@
     "validate:environmental-data": "node scripts/validate-environmental-data.mjs"
   },
   "dependencies": {
+    "@turf/turf": "^7.4.0",
     "autoprefixer": "^10.5.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",

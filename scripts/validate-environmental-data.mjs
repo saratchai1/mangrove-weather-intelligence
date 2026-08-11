@@ -41,6 +41,21 @@ for (const projectId of projectIds) {
   }
 }
 
+const riskData = JSON.parse(await fs.readFile(path.join(dataRoot, 'plot-risk-factors.json'), 'utf8'));
+const matchedRiskRecords = riskData.records.filter((record) => record.matchStatus === 'MATCHED');
+const unmatchedRiskRecords = riskData.records.filter((record) => record.matchStatus === 'UNMATCHED');
+assert(riskData.records.length === 9, `expected 9 waterlogging records, found ${riskData.records.length}`);
+assert(matchedRiskRecords.length === 7, `expected 7 matched waterlogging records, found ${matchedRiskRecords.length}`);
+assert(unmatchedRiskRecords.length === 2, `expected 2 unmatched waterlogging records, found ${unmatchedRiskRecords.length}`);
+assert(
+  new Set(matchedRiskRecords.map((record) => record.plotKey)).size === matchedRiskRecords.length,
+  'duplicate matched waterlogging plotKey',
+);
+for (const record of matchedRiskRecords) {
+  assert(record.riskFactorCode === 'WATERLOGGING', `${record.plotId}: invalid risk factor code`);
+  assert(seen.has(record.plotId), `${record.plotId}: matched waterlogging plot is absent from GIS data`);
+}
+
 assert(total === 129, `expected 129 plot records, found ${total}`);
 console.log(JSON.stringify({
   projectCount: projectIds.length,
@@ -48,6 +63,9 @@ console.log(JSON.stringify({
   uniquePlotIdCount: seen.size,
   unavailableLocationCount: unavailable,
   providerMode: provider.mode,
+  waterloggingSourceCount: riskData.records.length,
+  waterloggingMatchedCount: matchedRiskRecords.length,
+  waterloggingUnmatchedCount: unmatchedRiskRecords.length,
 }, null, 2));
 
 function assert(condition, message) {

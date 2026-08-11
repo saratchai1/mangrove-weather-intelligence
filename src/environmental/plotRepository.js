@@ -10,10 +10,30 @@ async function fetchJson(url, fetchImpl) {
   return response.json();
 }
 
+async function fetchOptionalJson(url, fetchImpl, fallback) {
+  try {
+    const response = await fetchImpl(url);
+    if (!response.ok) return fallback;
+    return await response.json();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function getVisiblePlots({
   fetchImpl = fetch,
   canViewPlot = () => true,
 } = {}) {
+  const riskData = await fetchOptionalJson(
+    withBasePath('/data/plot-risk-factors.json'),
+    fetchImpl,
+    { records: [] },
+  );
+  const riskByPlotKey = new Map(
+    (riskData.records || [])
+      .filter((record) => record.matchStatus === 'MATCHED' && record.plotKey)
+      .map((record) => [record.plotKey, record]),
+  );
   const projectRecords = await Promise.all(spatialProjects().map(async (appProject) => {
     const root = withBasePath(`/data/${appProject.id}`);
     const [projectMetadata, geojson] = await Promise.all([
@@ -24,9 +44,10 @@ export async function getVisiblePlots({
     return (geojson.features || []).map((feature) => {
       const properties = feature.properties || {};
       const plotId = String(properties.plotId || properties.layerId || '').trim();
+      const plotKey = `${appProject.id}:${plotId}`;
       const plot = {
         plotId,
-        plotKey: `${appProject.id}:${plotId}`,
+        plotKey,
         plotName: properties.plotName || plotId,
         projectId: appProject.id,
         projectName: projectMetadata.officialName || appProject.officialName || appProject.name,
@@ -35,6 +56,7 @@ export async function getVisiblePlots({
         subdistrict: properties.subdistrict || '',
         geometry: feature.geometry || null,
         representativePoint: getRepresentativePoint(feature),
+        riskFactor: riskByPlotKey.get(plotKey) || null,
         sourceProperties: properties,
       };
       return plot;

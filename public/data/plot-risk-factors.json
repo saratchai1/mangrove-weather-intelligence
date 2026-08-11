@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "fileName": "ปัจจัยพื้นที่เสี่ยง.xlsx",
+    "sheetName": "data พื้นที่ ปี 2565",
+    "headerRow": 3,
+    "plotIdColumn": "C",
+    "riskFactorColumn": "L",
+    "verifiedAt": "2026-08-11"
+  },
+  "summary": {
+    "sourceWaterloggingPlots": 9,
+    "matchedDashboardPlots": 7,
+    "unmatchedPlots": 2
+  },
+  "records": [
+    {
+      "plotId": "28-STC",
+      "plotKey": null,
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "UNMATCHED",
+      "sourceRow": 23
+    },
+    {
+      "plotId": "29-STC",
+      "plotKey": null,
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "UNMATCHED",
+      "sourceRow": 24
+    },
+    {
+      "plotId": "36-STC",
+      "plotKey": "g1-siam-tc:36-STC",
+      "province": "ฉะเชิงเทรา",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 28
+    },
+    {
+      "plotId": "70-VSD",
+      "plotKey": "g1-wisutti:70-VSD",
+      "province": "สตูล",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 141
+    },
+    {
+      "plotId": "88-VSD",
+      "plotKey": "g2-wisutti:88-VSD",
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 149
+    },
+    {
+      "plotId": "89-VSD",
+      "plotKey": "g2-wisutti:89-VSD",
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 150
+    },
+    {
+      "plotId": "93-VSD",
+      "plotKey": "g2-wisutti:93-VSD",
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 154
+    },
+    {
+      "plotId": "94-VSD",
+      "plotKey": "g2-wisutti:94-VSD",
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 155
+    },
+    {
+      "plotId": "95-VSD",
+      "plotKey": "g2-wisutti:95-VSD",
+      "province": "ปัตตานี",
+      "riskFactorCode": "WATERLOGGING",
+      "riskFactorLabel": "น้ำท่วมขัง",
+      "matchStatus": "MATCHED",
+      "sourceRow": 156
+    }
+  ]
+}

@@ -30,6 +30,9 @@ import {
   RISK_RANK,
 } from './environmental/config';
 import { fetchEnvironmentalOverview } from './environmental/apiClient';
+import { evaluateWaterloggingAlert } from './environmental/waterloggingAlerts';
+import { getStormImpactGeometry } from './environmental/stormProvider';
+import * as turf from '@turf/turf';
 import './EnvironmentalIntelligence.css';
 
 const ALL = 'ALL';
@@ -117,6 +120,21 @@ function getMapSeverity(plot, selectedDate) {
     || 'UNKNOWN';
 }
 
+function annotatePlotForDate(plot, selectedDate, stormImpacted = false) {
+  const mapDay = getDailyForecast(plot, selectedDate);
+  const mapSeverity = mapDay?.severity || plot.forecast?.rainSeverity || 'UNKNOWN';
+  return {
+    ...plot,
+    mapDay,
+    mapSeverity,
+    waterloggingAlert: evaluateWaterloggingAlert({
+      riskFactor: plot.riskFactor,
+      severity: mapSeverity,
+      stormImpacted,
+    }),
+  };
+}
+
 function worstSeverity(counts) {
   return SEVERITY_ORDER.find((level) => counts[level] > 0) || 'UNKNOWN';
 }
@@ -179,6 +197,7 @@ function buildProvinceForecasts(plots, selectedDate) {
       probabilityPct: Math.max(0, ...probabilities),
       rainOnsetAt: onsetTimes[0] || null,
       directionDeg: meanDirection(provincePlots),
+      waterloggingAlertCount: provincePlots.filter((plot) => plot.waterloggingAlert?.active).length,
       position: [
         provincePlots.reduce((sum, plot) => sum + plot.representativePoint.lat, 0) / provincePlots.length,
         provincePlots.reduce((sum, plot) => sum + plot.representativePoint.lng, 0) / provincePlots.length,
@@ -208,6 +227,7 @@ function EnvironmentalMap({
   const mapRef = useRef(null);
   const operationalLayersRef = useRef([]);
   const featureLayersRef = useRef({});
+  const initialViewportSetRef = useRef(false);
   const mapSeverityCounts = Object.fromEntries(SEVERITY_ORDER.map((level) => [
     level,
     plots.filter((plot) => getMapSeverity(plot, selectedDate) === level).length,
@@ -216,6 +236,7 @@ function EnvironmentalMap({
     0,
     ...plots.map((plot) => Number((plot.mapDay || getDailyForecast(plot, selectedDate))?.totalRainMm || 0)),
   );
+  const waterloggingAlertPlots = plots.filter((plot) => plot.waterloggingAlert?.active);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return undefined;
@@ -233,13 +254,14 @@ function EnvironmentalMap({
       pane: 'overlayPane',
       opacity: 0.78,
     }).addTo(map);
-    map.setView([10.3, 100.3], 6);
+    map.setView([8.9, 100.7], 7);
     mapRef.current = map;
     return () => {
       map.remove();
       mapRef.current = null;
       operationalLayersRef.current = [];
       featureLayersRef.current = {};
+      initialViewportSetRef.current = false;
     };
   }, []);
 
@@ -268,12 +290,15 @@ function EnvironmentalMap({
         const plot = byKey[feature.properties.plotKey];
         const severity = getMapSeverity(plot, selectedDate);
         const selected = plot.plotKey === selectedPlotKey;
+        const waterloggingAlert = plot.waterloggingAlert?.active;
         return {
-          color: selected ? '#ffffff' : '#102b24',
-          weight: selected ? 3.6 : 1.25,
-          opacity: 0.95,
-          fillColor: RISK_COLORS[severity],
-          fillOpacity: selected ? 0.74 : 0.48,
+          className: waterloggingAlert ? 'waterlogging-alert-polygon' : '',
+          color: waterloggingAlert ? '#7f1d1d' : selected ? '#ffffff' : '#102b24',
+          weight: waterloggingAlert ? 6 : selected ? 3.6 : 1.25,
+          opacity: 1,
+          dashArray: waterloggingAlert ? '14 7' : null,
+          fillColor: waterloggingAlert ? '#ef4444' : RISK_COLORS[severity],
+          fillOpacity: waterloggingAlert ? 0.86 : selected ? 0.74 : 0.48,
         };
       },
       onEachFeature: (feature, featureLayer) => {
@@ -288,6 +313,7 @@ function EnvironmentalMap({
             <hr>
             <strong>${escapeHtml(formatNumber(day?.totalRainMm, 1))} มม.</strong> · ${escapeHtml(RISK_LABELS[severity])}
             <small>ฝนเริ่ม ${escapeHtml(formatTime(day?.rainOnsetAt))}</small>
+            ${plot.riskFactor?.riskFactorCode === 'WATERLOGGING' ? `<small class="waterlogging-tooltip ${plot.waterloggingAlert?.active ? 'is-alert' : ''}">⚠ ปัจจัยพื้นที่: น้ำท่วมขัง${plot.waterloggingAlert?.active ? ' · เตือนแดงในเขตพายุ' : plot.waterloggingAlert?.forecastRain ? ' · เฝ้าระวังจากฝน' : ''}</small>` : ''}
           </div>`,
           { sticky: true, className: 'environment-map-tooltip' },
         );
@@ -300,6 +326,7 @@ function EnvironmentalMap({
     const rainGroup = L.featureGroup();
     const directionGroup = L.featureGroup();
     const provinceForecastGroup = L.featureGroup();
+    const waterloggingAlertGroup = L.featureGroup();
     const directionCells = new Set();
     mappedPlots.forEach((plot) => {
       if (!plot.representativePoint) return;
@@ -327,6 +354,42 @@ function EnvironmentalMap({
       );
       circle.on('click', () => onSelect(plot.plotKey));
       circle.addTo(rainGroup);
+
+      if (plot.waterloggingAlert?.active) {
+        L.circleMarker(position, {
+          className: 'waterlogging-alert-halo',
+          radius: 25,
+          color: '#ffffff',
+          weight: 3,
+          fillColor: '#dc2626',
+          fillOpacity: 0.34,
+          interactive: false,
+        }).addTo(waterloggingAlertGroup);
+        const warningMarker = L.marker(position, {
+          zIndexOffset: 3000,
+          icon: L.divIcon({
+            className: 'waterlogging-plot-warning-icon',
+            html: `<div class="waterlogging-plot-warning">
+              <i>!</i>
+              <span><strong>${escapeHtml(plot.plotId)}</strong><b>เตือนน้ำท่วมขัง</b><small>ฝนระดับ${escapeHtml(RISK_LABELS[severity])}</small></span>
+            </div>`,
+            iconSize: [132, 50],
+            iconAnchor: [66, 54],
+          }),
+        });
+        warningMarker.bindTooltip(
+          `<div class="map-tooltip waterlogging-warning-tooltip">
+            <b>⚠ เตือนน้ำท่วมขัง · ${escapeHtml(plot.plotId)}</b>
+            <span>${escapeHtml(plot.province)} · ฝนระดับ${escapeHtml(RISK_LABELS[severity])}</span>
+            <hr>
+            <strong>${escapeHtml(formatNumber(rainTotal, 1))} มม./วัน</strong>
+            <small>มีปัจจัยน้ำท่วมขัง + ฝนตั้งแต่สีเหลือง + อยู่ในเขตพายุที่มีผลใช้งาน</small>
+          </div>`,
+          { direction: 'top', className: 'environment-map-tooltip' },
+        );
+        warningMarker.on('click', () => onSelect(plot.plotKey));
+        warningMarker.addTo(waterloggingAlertGroup);
+      }
 
       const direction = plot.forecast?.rainMovementTowardDeg;
       const directionCell = `${plot.representativePoint.lat.toFixed(1)}:${plot.representativePoint.lng.toFixed(1)}`;
@@ -358,13 +421,14 @@ function EnvironmentalMap({
         zIndexOffset: 1000 + RISK_RANK[forecast.severity] * 100,
         icon: L.divIcon({
           className: 'province-forecast-icon',
-          html: `<div class="province-forecast-marker severity-${forecast.severity.toLowerCase()}">
+          html: `<div class="province-forecast-marker severity-${forecast.severity.toLowerCase()} ${forecast.waterloggingAlertCount ? 'has-waterlogging-alert' : ''}">
             <div class="province-forecast-donut" style="background:${forecast.gradient}">
               <span><b>${escapeHtml(formatNumber(forecast.maxRainMm))}</b><small>มม.</small></span>
               ${directionArrow}
             </div>
             <strong>${escapeHtml(forecast.province)}</strong>
             <em>${escapeHtml(forecast.count)} แปลง · ${escapeHtml(formatNumber(forecast.probabilityPct))}%</em>
+            ${forecast.waterloggingAlertCount ? `<mark>⚠ น้ำท่วมขัง ${forecast.waterloggingAlertCount}</mark>` : ''}
           </div>`,
           iconSize: [96, 88],
           iconAnchor: [48, 44],
@@ -379,6 +443,7 @@ function EnvironmentalMap({
           <small>เฉลี่ย ${escapeHtml(formatNumber(forecast.averageRainMm, 1))} มม. · โอกาสฝนสูงสุด ${escapeHtml(formatNumber(forecast.probabilityPct))}%</small>
           <small>ฝนเริ่มเร็วสุด ${escapeHtml(formatTime(forecast.rainOnsetAt))}</small>
           <small>แดง ${forecast.counts.CRITICAL} · ส้ม ${forecast.counts.HIGH} · เหลือง ${forecast.counts.MODERATE} · เขียว ${forecast.counts.LOW}</small>
+          ${forecast.waterloggingAlertCount ? `<small class="waterlogging-tooltip is-alert">เตือนน้ำท่วมขัง ${forecast.waterloggingAlertCount} แปลง</small>` : ''}
         </div>`,
         { direction: 'top', className: 'environment-map-tooltip' },
       );
@@ -397,22 +462,44 @@ function EnvironmentalMap({
       rainGroup.remove();
       provinceForecastGroup.remove();
       directionGroup.remove();
+      waterloggingAlertGroup.remove();
       if (layers.rain) {
         if (overviewMode) provinceForecastGroup.addTo(map);
         else rainGroup.addTo(map);
       }
       if (layers.direction && !overviewMode) directionGroup.addTo(map);
+      if (layers.plots && !overviewMode) waterloggingAlertGroup.addTo(map);
     };
     map.on('zoomend', syncZoomLayers);
-    operationalLayersRef.current.push(rainGroup, directionGroup, provinceForecastGroup);
+    operationalLayersRef.current.push(rainGroup, directionGroup, provinceForecastGroup, waterloggingAlertGroup);
 
     map.invalidateSize({ pan: false });
     const selectedLayer = featureLayersRef.current[focusPlotKey];
     if (selectedLayer && layers.plots) {
       selectedLayer.bringToFront();
       map.flyToBounds(selectedLayer.getBounds(), { padding: [38, 38], maxZoom: 15 });
-    } else if (polygonLayer.getBounds().isValid()) {
-      map.fitBounds(polygonLayer.getBounds(), { padding: [26, 26], maxZoom: 8 });
+    } else if (!initialViewportSetRef.current) {
+      const alertGroups = new Map();
+      mappedPlots
+        .filter((plot) => plot.waterloggingAlert?.forecastRain && plot.representativePoint)
+        .forEach((plot) => {
+          const province = plot.province || 'ไม่ระบุจังหวัด';
+          if (!alertGroups.has(province)) alertGroups.set(province, []);
+          alertGroups.get(province).push(plot);
+        });
+      const priorityAlertPlots = [...alertGroups.values()]
+        .sort((left, right) => right.length - left.length)[0] || [];
+
+      if (priorityAlertPlots.length) {
+        const priorityBounds = L.latLngBounds(priorityAlertPlots.map((plot) => [
+          plot.representativePoint.lat,
+          plot.representativePoint.lng,
+        ]));
+        map.fitBounds(priorityBounds, { padding: [85, 85], maxZoom: 10 });
+      } else if (polygonLayer.getBounds().isValid()) {
+        map.fitBounds(polygonLayer.getBounds(), { padding: [42, 42], maxZoom: 7 });
+      }
+      initialViewportSetRef.current = true;
     }
     syncZoomLayers();
     return () => map.off('zoomend', syncZoomLayers);
@@ -436,6 +523,16 @@ function EnvironmentalMap({
         </p>
         <small>ซูมไกล: รายจังหวัด · ซูมเข้า: รายแปลง</small>
       </div>
+      {waterloggingAlertPlots.length > 0 && (
+        <div className="map-waterlogging-banner" role="status">
+          <span className="map-warning-pulse"><AlertTriangle size={19} /></span>
+          <div>
+            <small>คำเตือนสำคัญบนแผนที่</small>
+            <strong>น้ำท่วมขัง {waterloggingAlertPlots.length} แปลง</strong>
+            <p>มีปัจจัยน้ำท่วมขัง + ฝนตั้งแต่สีเหลือง + อยู่ในเขตพายุ</p>
+          </div>
+        </div>
+      )}
       <div className="environment-map" ref={containerRef} aria-label="แผนที่พยากรณ์ฝนและขอบเขตแปลงปลูก" />
     </div>
   );
@@ -550,6 +647,24 @@ function PlotDetail({ plot, selectedDate }) {
         <RiskBadge level={selectedDay?.severity || forecast.rainSeverity || 'UNKNOWN'} />
       </header>
 
+      {plot.riskFactor?.riskFactorCode === 'WATERLOGGING' && (
+        <section className={`waterlogging-detail ${plot.waterloggingAlert?.active ? 'is-alert' : plot.waterloggingAlert?.forecastRain ? 'is-monitoring' : ''}`}>
+          <AlertTriangle size={19} />
+          <div>
+            <p className="section-label">ปัจจัยพื้นที่จากทะเบียนเดิม</p>
+            <h3>{plot.waterloggingAlert?.active ? 'เตือนความเสี่ยงน้ำท่วมขัง' : plot.waterloggingAlert?.forecastRain ? 'เฝ้าระวังน้ำท่วมขังจากฝน' : 'แปลงมีปัจจัยน้ำท่วมขัง'}</h3>
+            <p>
+              {plot.waterloggingAlert?.active
+                ? 'พยากรณ์ฝนตั้งแต่ระดับเหลืองขึ้นไป และอยู่ในเขตพายุที่มีผลใช้งาน'
+                : plot.waterloggingAlert?.forecastRain
+                  ? 'ฝนตั้งแต่ระดับเหลืองขึ้นไป แต่ยังอยู่นอกเขตพายุ จึงยังไม่ขึ้นคำเตือนแดง'
+                  : 'ระดับฝนของวันที่เลือกยังเป็นสีเขียวหรือไม่มีข้อมูล จึงยังไม่เตือน'}
+            </p>
+            <small>ที่มา: ปัจจัยพื้นที่เสี่ยง.xlsx · คอลัมน์ L · แถว {plot.riskFactor.sourceRow}</small>
+          </div>
+        </section>
+      )}
+
       {forecast.mode === 'UNAVAILABLE' ? (
         <div className="unavailable-note">
           <AlertTriangle size={18} />
@@ -624,6 +739,90 @@ function PlotDetail({ plot, selectedDate }) {
   );
 }
 
+function WaterloggingWatch({ plots, sourceTotal = 9, unmatchedTotal = 2, selectedDate, stormZoneStatus, onSelect }) {
+  const active = plots.filter((plot) => plot.waterloggingAlert?.active);
+  const rainWatch = plots.filter((plot) => plot.waterloggingAlert?.forecastRain);
+  const stormCount = plots.filter((plot) => plot.waterloggingAlert?.storm).length;
+  return (
+    <section className={`waterlogging-watch ${active.length ? 'is-alert' : 'is-monitoring'}`}>
+      <span className="risk-section-number">1</span>
+      <div className="waterlogging-watch-icon"><AlertTriangle size={24} /></div>
+      <div className="waterlogging-watch-content">
+        <p className="section-label">Waterlogging early warning · {formatDay(selectedDate)}</p>
+        <h2>แปลงที่อาจมีน้ำท่วมขังจากพายุฝน</h2>
+        <strong className="waterlogging-alert-total">
+          {active.length
+            ? `คำเตือนแดง ${active.length} แปลง`
+            : rainWatch.length
+              ? `เฝ้าระวังจากฝน ${rainWatch.length} แปลง · ยังไม่เข้าเขตพายุ`
+              : 'วันนี้ยังไม่มีแปลงเข้าเกณฑ์เฝ้าระวัง'}
+        </strong>
+        <p>
+          {active.length
+            ? 'ขึ้นสีแดงเฉพาะแปลงที่มีปัจจัยน้ำท่วมขัง ฝนตั้งแต่ระดับเหลือง และอยู่ในเขตพายุที่มีผลใช้งานครบทั้ง 3 เงื่อนไข'
+            : rainWatch.length
+              ? 'ฝนถึงเกณฑ์เฝ้าระวังแล้ว แต่ยังไม่มีแปลงใดอยู่ในเขตพายุ จึงไม่แสดงคำเตือนแดง'
+              : 'มีข้อมูลฐานน้ำท่วมขัง แต่พยากรณ์ของวันที่เลือกยังเป็นสีเขียวหรือไม่มีข้อมูล'}
+        </p>
+        <div className="waterlogging-watch-metrics">
+          <span><b>{plots.length}</b> แปลงบนแผนที่</span>
+          <span><b>{rainWatch.length}</b> ฝนตั้งแต่สีเหลือง</span>
+          <span><b>{stormCount}</b> อยู่ในเขตพายุ</span>
+          <span><b>{active.length}</b> คำเตือนแดง</span>
+          <span><b>{sourceTotal}</b> รายการต้นทาง · ยังไม่มี GIS {unmatchedTotal}</span>
+          <span className={`storm-zone-status status-${String(stormZoneStatus?.status || 'idle').toLowerCase()}`}>
+            เขตพายุ: {stormZoneStatus?.status === 'LOADING' ? 'กำลังดึง GDACS' : stormZoneStatus?.status === 'AVAILABLE' ? 'ข้อมูลล่าสุดพร้อม' : 'ไม่มีพายุ active / polygon ใช้งาน'}
+          </span>
+        </div>
+        <div className="waterlogging-plot-list">
+          {plots.map((plot) => (
+            <button
+              key={plot.plotKey}
+              type="button"
+              className={plot.waterloggingAlert?.active ? 'active' : plot.waterloggingAlert?.forecastRain ? 'watching' : ''}
+              onClick={() => onSelect(plot.plotKey)}
+            >
+              {plot.waterloggingAlert?.active && <AlertTriangle size={12} />}
+              {plot.plotId} · {plot.province}
+            </button>
+          ))}
+        </div>
+        <small className="waterlogging-source">กติกาเตือนแดง: ปัจจัยน้ำท่วมขัง + สีฝนเหลือง/ส้ม/แดง + อยู่ในเขตพายุที่มีผลใช้งาน · ที่มา: ปัจจัยพื้นที่เสี่ยง.xlsx คอลัมน์ L · ตรวจสอบกับ GIS แล้ว 7 จาก 9 แปลง</small>
+      </div>
+    </section>
+  );
+}
+
+function WeatherCriteriaGuide() {
+  return (
+    <section className="weather-criteria-guide" aria-label="เกณฑ์ระดับสีฝนและลมรายวัน">
+      <header>
+        <div><ShieldAlert size={17} /><strong>เกณฑ์สีปฏิบัติการรายวัน</strong></div>
+        <p>ระบบใช้ระดับที่รุนแรงที่สุดจากเงื่อนไขใดเงื่อนไขหนึ่งด้านล่าง</p>
+      </header>
+      <div className="weather-criteria-grid">
+        <article className="criteria-low">
+          <RiskBadge level="LOW" label="เขียว · ปกติ" />
+          <p>ฝนสะสม &lt;35 มม./วัน · สูงสุด &lt;2.5 มม./ชม. · ลมกระโชก &lt;35 กม./ชม.</p>
+        </article>
+        <article className="criteria-moderate">
+          <RiskBadge level="MODERATE" label="เหลือง · เฝ้าระวัง" />
+          <p>ฝน ≥35 มม./วัน หรือ ≥2.5 มม./ชม. หรือลมกระโชก ≥35 กม./ชม. หรือโอกาสฝน ≥70% และมีฝน</p>
+        </article>
+        <article className="criteria-high">
+          <RiskBadge level="HIGH" label="ส้ม · เสี่ยงสูง" />
+          <p>ฝน ≥70 มม./วัน หรือ ≥10 มม./ชม. หรือลมกระโชก ≥50 กม./ชม.</p>
+        </article>
+        <article className="criteria-critical">
+          <RiskBadge level="CRITICAL" label="แดง · รุนแรง" />
+          <p>พายุฝนฟ้าคะนอง หรือฝน ≥120 มม./วัน หรือ ≥20 มม./ชม. หรือลมกระโชก ≥70 กม./ชม.</p>
+        </article>
+      </div>
+      <small>เกณฑ์นี้เป็นเกณฑ์คัดกรองของระบบ ไม่ใช่ประกาศเตือนภัยทางราชการ · ตัวเลขลมที่ใช้จัดสีคือ “ลมกระโชกสูงสุด”</small>
+    </section>
+  );
+}
+
 export default function EnvironmentalIntelligence() {
   const [horizon, setHorizon] = useState('7d');
   const [riskFilter, setRiskFilter] = useState(ALL);
@@ -638,6 +837,9 @@ export default function EnvironmentalIntelligence() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshToken, setRefreshToken] = useState(0);
+
+  const [stormImpactZone, setStormImpactZone] = useState(null);
+  const [stormZoneStatus, setStormZoneStatus] = useState({ status: 'IDLE', note: '' });
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -659,15 +861,43 @@ export default function EnvironmentalIntelligence() {
       setSelectedDate((current) => current || firstPlot?.forecast?.dailyRain?.[0]?.date || '');
       setSelectedPlotKey((current) => current || firstPlot?.plotKey || '');
       setLoading(false);
+      setStormImpactZone(null);
+      setStormZoneStatus({ status: 'LOADING', note: 'กำลังดึง polygon เขตพายุจาก GDACS' });
+      return getStormImpactGeometry({
+        storm: result.stormContext?.activeNamedStorm,
+      }).then((zone) => {
+        if (live) {
+          setStormImpactZone(zone.status === 'AVAILABLE' ? zone : null);
+          setStormZoneStatus({ status: zone.status, note: zone.note });
+        }
+      });
     }).catch((reason) => {
       if (!live) return;
       setError(reason.message);
       setLoading(false);
     });
+
     return () => {
       live = false;
     };
   }, [horizon, refreshToken]);
+
+  const impactedPlotKeys = useMemo(() => {
+    const newImpacted = new Set();
+    const stormFeatures = stormImpactZone?.features || [];
+    if (!overview?.plots || !stormFeatures.length) return newImpacted;
+
+    overview.plots.forEach(plot => {
+      if (plot.representativePoint) {
+        const pt = turf.point([plot.representativePoint.lng, plot.representativePoint.lat]);
+        if (stormFeatures.some((feature) => turf.booleanPointInPolygon(pt, feature))) {
+          newImpacted.add(plot.plotKey);
+        }
+      }
+    });
+
+    return newImpacted;
+  }, [overview, stormImpactZone]);
 
   const projects = useMemo(() => (
     [...new Map((overview?.plots || []).map((plot) => [plot.projectId, plot.projectName])).entries()]
@@ -677,14 +907,7 @@ export default function EnvironmentalIntelligence() {
   const visiblePlots = useMemo(() => {
     const query = search.trim().toLowerCase();
     return (overview?.plots || [])
-      .map((plot) => {
-        const mapDay = getDailyForecast(plot, selectedDate);
-        return {
-          ...plot,
-          mapDay,
-          mapSeverity: mapDay?.severity || plot.forecast?.rainSeverity || 'UNKNOWN',
-        };
-      })
+      .map((plot) => annotatePlotForDate(plot, selectedDate, impactedPlotKeys.has(plot.plotKey)))
       .filter((plot) => projectFilter === ALL || plot.projectId === projectFilter)
       .filter((plot) => riskFilter === ALL || getMapSeverity(plot, selectedDate) === riskFilter)
       .filter((plot) => {
@@ -692,21 +915,38 @@ export default function EnvironmentalIntelligence() {
         return !query || text.includes(query);
       })
       .sort((left, right) => (
-        RISK_RANK[getMapSeverity(right, selectedDate)] - RISK_RANK[getMapSeverity(left, selectedDate)]
+        Number(right.waterloggingAlert?.active) - Number(left.waterloggingAlert?.active)
+        || RISK_RANK[getMapSeverity(right, selectedDate)] - RISK_RANK[getMapSeverity(left, selectedDate)]
         || Number(getDailyForecast(right, selectedDate)?.totalRainMm || 0) - Number(getDailyForecast(left, selectedDate)?.totalRainMm || 0)
         || left.plotKey.localeCompare(right.plotKey)
       ));
-  }, [overview, projectFilter, riskFilter, search, selectedDate]);
+  }, [impactedPlotKeys, overview, projectFilter, riskFilter, search, selectedDate]);
 
-  const selectedPlot = overview?.plots.find((plot) => plot.plotKey === selectedPlotKey) || null;
-  const summary = overview?.summary || {};
+  const selectedPlotBase = overview?.plots.find((plot) => plot.plotKey === selectedPlotKey) || null;
+  const selectedPlot = selectedPlotBase
+    ? annotatePlotForDate(selectedPlotBase, selectedDate, impactedPlotKeys.has(selectedPlotBase.plotKey))
+    : null;
+  const waterloggingPlots = useMemo(() => (
+    (overview?.plots || [])
+      .filter((plot) => plot.riskFactor?.riskFactorCode === 'WATERLOGGING')
+      .map((plot) => annotatePlotForDate(plot, selectedDate, impactedPlotKeys.has(plot.plotKey)))
+      .sort((left, right) => (
+        Number(right.waterloggingAlert.active) - Number(left.waterloggingAlert.active)
+        || left.plotId.localeCompare(right.plotId)
+      ))
+  ), [impactedPlotKeys, overview, selectedDate]);
+  const operationalPlots = useMemo(() => (
+    visiblePlots.filter((plot) => plot.riskFactor?.riskFactorCode !== 'WATERLOGGING')
+  ), [visiblePlots]);
   const forecastDates = overview?.plots?.find((plot) => plot.forecast?.dailyRain?.length)?.forecast.dailyRain
     .map((day) => day.date) || [];
   const daySummary = useMemo(() => {
-    const mapped = (overview?.plots || []).map((plot) => ({
-      plot,
-      day: getDailyForecast(plot, selectedDate),
-    }));
+    const mapped = (overview?.plots || [])
+      .filter((plot) => plot.riskFactor?.riskFactorCode !== 'WATERLOGGING')
+      .map((plot) => ({
+        plot,
+        day: getDailyForecast(plot, selectedDate),
+      }));
     const count = (level) => mapped.filter(({ day }) => day?.severity === level).length;
     return {
       red: count('CRITICAL'),
@@ -714,6 +954,7 @@ export default function EnvironmentalIntelligence() {
       yellow: count('MODERATE'),
       green: count('LOW'),
       maxRain: Math.max(0, ...mapped.map(({ day }) => Number(day?.totalRainMm || 0))),
+      total: mapped.length,
     };
   }, [overview, selectedDate]);
 
@@ -756,6 +997,8 @@ export default function EnvironmentalIntelligence() {
                 onClick={() => {
                   setLoading(true);
                   setError('');
+                  setStormImpactZone(null);
+                  setStormZoneStatus({ status: 'LOADING', note: 'กำลังดึงข้อมูลพายุใหม่' });
                   setHorizon(value);
                 }}
               >
@@ -769,6 +1012,8 @@ export default function EnvironmentalIntelligence() {
             onClick={() => {
               setLoading(true);
               setError('');
+              setStormImpactZone(null);
+              setStormZoneStatus({ status: 'LOADING', note: 'กำลังดึงข้อมูลพายุใหม่' });
               setRefreshToken((value) => value + 1);
             }}
             disabled={loading}
@@ -795,8 +1040,34 @@ export default function EnvironmentalIntelligence() {
         <>
           <StormBanner stormContext={overview?.stormContext} />
 
-          <section className="environment-summary-grid" aria-label="สรุปความรุนแรงของฝนตามวันที่เลือก">
-            <SummaryCard icon={MapPinned} label="ขอบเขตแปลง GIS" value={summary.total} tone="total" />
+          <WaterloggingWatch
+            plots={waterloggingPlots}
+            selectedDate={selectedDate}
+            stormZoneStatus={stormZoneStatus}
+            onSelect={selectPlot}
+          />
+
+          <section className="weather-operations-heading">
+            <span className="risk-section-number">2</span>
+            <div>
+              <p className="section-label">Weather operations · {formatDay(selectedDate)}</p>
+              <h2>แปลงที่มีฝนตกหนักหรือลมแรง แต่ไม่มีปัจจัยน้ำท่วมขัง</h2>
+              <p>รายงานความรุนแรงตามพยากรณ์เดิม โดยแยกออกจากแปลงเตือนน้ำท่วมขังในส่วนที่ 1</p>
+            </div>
+          </section>
+
+          <WeatherCriteriaGuide />
+
+          {impactedPlotKeys.size > 0 && (
+            <p className="storm-impact-note">
+              <CloudLightning size={15} /> เขตอิทธิพลพายุครอบคลุม {impactedPlotKeys.size} แปลงทั้งหมด
+              {overview?.stormContext?.activeNamedStorm?.maxWindKph ? ` · ลมสูงสุด ${overview.stormContext.activeNamedStorm.maxWindKph} กม./ชม.` : ''}
+              {' '}ใช้เป็นข้อมูลประกอบร่วมกับระดับฝนและลมของแต่ละแปลง
+            </p>
+          )}
+
+          <section className="environment-summary-grid" aria-label="สรุปความรุนแรงของแปลงที่ไม่มีปัจจัยน้ำท่วมขัง">
+            <SummaryCard icon={MapPinned} label="แปลงในส่วนที่ 2" value={daySummary.total} tone="total" />
             <SummaryCard icon={AlertTriangle} label="ระดับแดง" value={daySummary.red} tone="critical" />
             <SummaryCard icon={ShieldAlert} label="ระดับส้ม" value={daySummary.orange} tone="high" />
             <SummaryCard icon={Waves} label="ระดับเหลือง" value={daySummary.yellow} tone="moderate" />
@@ -811,7 +1082,7 @@ export default function EnvironmentalIntelligence() {
               <header className="panel-heading">
                 <div>
                   <p className="section-label">Forecast severity map · {formatDay(selectedDate)}</p>
-                  <h2>ฝนและขอบเขตแปลงปลูก</h2>
+                  <h2>ฝน ลม และขอบเขตแปลงปลูก</h2>
                 </div>
                 <div className="map-layer-controls">
                   <button type="button" className={mapLayers.plots ? 'active' : ''} onClick={() => toggleLayer('plots')}><Layers size={13} />แปลงปลูก</button>
@@ -820,6 +1091,7 @@ export default function EnvironmentalIntelligence() {
                 </div>
               </header>
               <div className="map-legend-bar">
+                <strong className="waterlogging-map-legend"><AlertTriangle size={12} />แดงทึบ + ป้ายเตือน · น้ำท่วมขัง</strong>
                 <span><i className="severity-green" />เขียว · ปกติ</span>
                 <span><i className="severity-yellow" />เหลือง · เฝ้าระวัง</span>
                 <span><i className="severity-orange" />ส้ม · เสี่ยงสูง</span>
@@ -842,8 +1114,8 @@ export default function EnvironmentalIntelligence() {
 
           <section className="priority-section">
             <header className="priority-header">
-              <div><p className="section-label">Plot-level forecast operations</p><h2>แปลงที่ควรติดตามก่อน</h2></div>
-              <span>{visiblePlots.length} จาก {summary.total || 0} แปลง · {formatDay(selectedDate)}</span>
+              <div><p className="section-label">Plot-level forecast · no waterlogging factor</p><h2>รายการฝนและลมของแปลงในส่วนที่ 2</h2></div>
+              <span>{operationalPlots.length} จาก {daySummary.total} แปลง · {formatDay(selectedDate)}</span>
             </header>
             <div className="environment-filters">
               <label><span>โครงการ</span><select value={projectFilter} onChange={(event) => setProjectFilter(event.target.value)}>
@@ -868,7 +1140,7 @@ export default function EnvironmentalIntelligence() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visiblePlots.map((plot, index) => {
+                  {operationalPlots.map((plot, index) => {
                     const day = getDailyForecast(plot, selectedDate);
                     const severity = getMapSeverity(plot, selectedDate);
                     const impact = plot.impacts[impactFilter === ALL ? 'FIELD' : impactFilter];
@@ -879,7 +1151,17 @@ export default function EnvironmentalIntelligence() {
                         onClick={() => selectPlot(plot.plotKey)}
                       >
                         <td>{index + 1}</td>
-                        <td><strong>{plot.plotName}</strong><span>{plot.projectName}</span></td>
+                        <td>
+                          <strong>
+                            {plot.plotName}
+                            {impactedPlotKeys.has(plot.plotKey) && (
+                              <span style={{ marginLeft: '6px', color: '#dc2626', display: 'inline-flex', alignItems: 'center' }} title="อยู่ในรัศมีพายุ">
+                                <AlertTriangle size={14} />
+                              </span>
+                            )}
+                          </strong>
+                          <span>{plot.projectName}</span>
+                        </td>
                         <td>{plot.province || 'ไม่ระบุจังหวัด'}</td>
                         <td><RiskBadge level={severity} compact /></td>
                         <td><b>{formatNumber(day?.totalRainMm, 1)}</b> มม.</td>
@@ -892,13 +1174,13 @@ export default function EnvironmentalIntelligence() {
                   })}
                 </tbody>
               </table>
-              {!visiblePlots.length && <div className="empty-results">ไม่พบแปลงตามตัวกรองนี้</div>}
+              {!operationalPlots.length && <div className="empty-results">ไม่พบแปลงในส่วนที่ 2 ตามตัวกรองนี้</div>}
             </div>
           </section>
 
           <footer className="environment-sources">
             <Database size={15} />
-            <span>พยากรณ์: Open‑Meteo Forecast API · พายุ: GDACS / European Commission · ขอบเขตแปลง: Shapefile เดิม 129 แปลง</span>
+            <span>พยากรณ์: Open‑Meteo Forecast API · พายุ: GDACS / European Commission · ขอบเขตแปลง: Shapefile เดิม 129 แปลง · ปัจจัยน้ำท่วมขัง: ปัจจัยพื้นที่เสี่ยง.xlsx คอลัมน์ L</span>
           </footer>
         </>
       )}

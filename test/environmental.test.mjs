@@ -11,7 +11,8 @@ import {
   OpenMeteoEnvironmentalProvider,
   parseOpenMeteoForecast,
 } from '../src/environmental/openMeteoProvider.js';
-import { parseGdacsStorms } from '../src/environmental/stormProvider.js';
+import { getStormImpactGeometry, parseGdacsStorms } from '../src/environmental/stormProvider.js';
+import { evaluateWaterloggingAlert } from '../src/environmental/waterloggingAlerts.js';
 
 const fixedTime = new Date('2026-07-29T04:00:00.000Z');
 const genericPlot = {
@@ -63,6 +64,16 @@ test('network timeout releases a stalled external provider', async () => {
 
 test('plot repository loads every visible project dynamically and applies permission predicate', async () => {
   const fetchImpl = async (url) => {
+    if (url.endsWith('/plot-risk-factors.json')) {
+      return new Response(JSON.stringify({
+        records: [{
+          plotKey: 'g1-wisutti:plot-2',
+          riskFactorCode: 'WATERLOGGING',
+          riskFactorLabel: 'น้ำท่วมขัง',
+          matchStatus: 'MATCHED',
+        }],
+      }), { status: 200 });
+    }
     if (url.endsWith('/project.json')) {
       return new Response(JSON.stringify({ officialName: 'Generic project' }), { status: 200 });
     }
@@ -90,6 +101,35 @@ test('plot repository loads every visible project dynamically and applies permis
   assert.equal(plots.length, 4);
   assert.ok(plots.every((plot) => plot.plotId === 'plot-2'));
   assert.ok(plots.every((plot) => plot.representativePoint === null));
+  assert.equal(
+    plots.find((plot) => plot.projectId === 'g1-wisutti').riskFactor.riskFactorCode,
+    'WATERLOGGING',
+  );
+});
+
+test('red waterlogging warning requires registered risk, yellow-or-higher rain, and storm zone', () => {
+  const riskFactor = { riskFactorCode: 'WATERLOGGING' };
+  assert.deepEqual(
+    evaluateWaterloggingAlert({ riskFactor, severity: 'MODERATE' }),
+    { isWaterlogging: true, forecastRain: true, storm: false, active: false },
+  );
+  assert.equal(
+    evaluateWaterloggingAlert({ riskFactor, severity: 'LOW', stormImpacted: true }).active,
+    false,
+  );
+  assert.equal(
+    evaluateWaterloggingAlert({ riskFactor, severity: 'HIGH', stormImpacted: true }).active,
+    true,
+  );
+  assert.equal(
+    evaluateWaterloggingAlert({ riskFactor, severity: 'CRITICAL', stormImpacted: true }).active,
+    true,
+  );
+  assert.equal(evaluateWaterloggingAlert({ riskFactor, severity: 'LOW' }).active, false);
+  assert.equal(
+    evaluateWaterloggingAlert({ severity: 'CRITICAL', stormImpacted: true }).active,
+    false,
+  );
 });
 
 test('Open-Meteo payload becomes a dated rain timeline and movement direction', () => {
@@ -139,6 +179,7 @@ test('GDACS cyclone parser preserves official name, alert, wind, and nearest dis
       properties: {
         eventtype: 'TC',
         eventid: 100,
+        episodeid: 7,
         eventname: 'GENERIC-26',
         name: 'Tropical Cyclone GENERIC-26',
         alertlevel: 'Orange',
@@ -158,9 +199,44 @@ test('GDACS cyclone parser preserves official name, alert, wind, and nearest dis
   }, [{ representativePoint: { lat: 14.1, lng: 101.1 } }], fixedTime);
   assert.equal(storms.length, 1);
   assert.equal(storms[0].name, 'GENERIC-26');
+  assert.equal(storms[0].episodeId, 7);
   assert.equal(storms[0].severity, 'HIGH');
   assert.equal(storms[0].maxWindKph, 150);
   assert.ok(storms[0].distanceKm < 20);
+});
+
+test('GDACS storm impact loader refreshes official polygon geometry for an active episode', async () => {
+  let requestedUrl = '';
+  const zone = await getStormImpactGeometry({
+    storm: {
+      eventId: 100,
+      episodeId: 7,
+      name: 'GENERIC-26',
+      toDate: '2026-07-30T00:00:00.000Z',
+      trackEnded: false,
+    },
+    fetchImpl: async (url) => {
+      requestedUrl = url;
+      return new Response(JSON.stringify({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          properties: { polygonlabel: '29/07 12:00 UTC' },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[[100, 10], [101, 10], [101, 11], [100, 10]]],
+          },
+        }],
+      }), { status: 200 });
+    },
+    asOf: fixedTime,
+  });
+  assert.match(requestedUrl, /eventid=100/);
+  assert.match(requestedUrl, /episodeid=7/);
+  assert.equal(zone.status, 'AVAILABLE');
+  assert.equal(zone.features[0].properties.data_status, 'OFFICIAL');
+  assert.equal(zone.features[0].properties.storm_name, 'GENERIC-26');
+  assert.equal(zone.features[0].properties.forecast_at, '2026-07-29T12:00:00.000Z');
 });
 
 test('live provider reuses one nearby weather grid for adjacent plots', async () => {
