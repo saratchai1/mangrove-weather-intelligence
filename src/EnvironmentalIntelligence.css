@@ -28,6 +28,76 @@
   box-shadow: 0 22px 56px rgba(8, 38, 30, 0.2);
 }
 
+
+/* Environmental Intelligence is the parent; Flood Impact is a separately deployed
+   evidence-comparison child. Link outward rather than relying on cross-origin iframe permissions. */
+.environment-submodule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 16px 0;
+  padding: 19px 23px;
+  border: 1px solid #cbded3;
+  border-radius: 18px;
+  background: #eef7f1;
+}
+
+.environment-submodule-copy {
+  min-width: 0;
+}
+
+.environment-submodule .section-label {
+  color: #356b57;
+}
+
+.environment-submodule h2 {
+  margin: 4px 0 6px;
+  color: #12392c;
+  font-size: clamp(18px, 2vw, 23px);
+  line-height: 1.3;
+}
+
+.environment-submodule p:not(.section-label) {
+  max-width: 900px;
+  color: #456459;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.environment-submodule-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: #ffffff;
+  background: #13634b;
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.environment-submodule-link:visited { color: #ffffff; }
+.environment-submodule-link:hover { background: #0a4736; }
+.environment-submodule-link:focus-visible {
+  outline: 3px solid #226c58;
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .environment-submodule {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 17px;
+  }
+  .environment-submodule-link { align-self: flex-start; }
+}
+
 .environment-hero::after {
   position: absolute;
   top: -105px;
