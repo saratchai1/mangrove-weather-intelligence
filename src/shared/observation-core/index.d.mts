@@ -1,0 +1,10 @@
+export declare const VERSION: '0.1.0';
+export declare const TIME_ZONE: 'Asia/Bangkok';
+export declare const AREA_M2_PER_UNIT: Readonly<{ rai: 1600; ha: 10000; km2: 1000000 }>;
+export declare function areaValue(squareM: number | null | undefined, unit?: string): number | null;
+export declare function formatBangkok(value: string | number | Date, options?: Intl.DateTimeFormatOptions): string;
+export declare function collectCoordinatePairs(coordinates: unknown, pairs?: unknown[][]): unknown[][];
+export declare function collectGeometryPairs(geometry: any, pairs?: unknown[][]): unknown[][];
+export declare function geometryBounds(geometry: unknown): [number, number, number, number] | null;
+export declare function zonedAcquisitionISO(value: string | null | undefined): string | null;
+export declare function stacSceneKey(collection: string | null | undefined, itemId: string | null | undefined): string;

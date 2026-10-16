@@ -1,21 +1,5 @@
-export function collectCoordinatePairs(coordinates, pairs = []) {
-  if (!Array.isArray(coordinates)) return pairs;
-  if (typeof coordinates[0] === 'number' && typeof coordinates[1] === 'number') {
-    pairs.push(coordinates);
-    return pairs;
-  }
-  coordinates.forEach((item) => collectCoordinatePairs(item, pairs));
-  return pairs;
-}
-
-export function collectGeometryPairs(geometry, pairs = []) {
-  if (!geometry) return pairs;
-  if (geometry.type === 'GeometryCollection') {
-    geometry.geometries?.forEach((item) => collectGeometryPairs(item, pairs));
-    return pairs;
-  }
-  return collectCoordinatePairs(geometry.coordinates, pairs);
-}
+import { collectCoordinatePairs, collectGeometryPairs } from '../shared/observation-core/index.mjs';
+export { collectCoordinatePairs, collectGeometryPairs };
 
 export function getRepresentativePoint(feature) {
   const pairs = collectGeometryPairs(feature?.geometry);

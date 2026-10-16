@@ -28,3 +28,16 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Observation core and private SAT FLOOD
+
+Weather UI date-time formatting and the existing coordinate-pair functions now use
+`@mangrove/environmental-observation-core` v0.1.0 as a pinned offline snapshot
+from `carbon-drive-devteam/mangrove-drone-dashboard` (`715d13068974f8bc1241b01ffd0f8d30c8dcf336`, blob `b51165d97d05756e6dca3ed7836b1bd5e6980dd3`).
+The `test/observation-core.test.mjs` verifies both exact blobs and visible equivalence.
+Forecast thresholds, storm providers, Leaflet, risk statuses and all UI styling remain local and unchanged.
+
+**Privacy:** `saratchai1/sat-flood` is a *private* repository, whereas this GitHub Pages site is public.
+Its card deliberately links authorized collaborators to the source repository; it must **not** embed,
+copy, build or publish SAT FLOOD assets into this public site until a separately authorized
+access-controlled hosting plan is approved.
