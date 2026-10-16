@@ -35,6 +35,7 @@ import { getStormImpactGeometry } from './environmental/stormProvider';
 import * as turf from '@turf/turf';
 import './EnvironmentalIntelligence.css';
 
+const PLOT_FLOOD_IMPACT_URL = 'https://plot-flood-impact.saratchai.workers.dev/';
 const ALL = 'ALL';
 const RISK_LABELS = {
   LOW: 'เขียว',
@@ -1023,6 +1024,26 @@ export default function EnvironmentalIntelligence() {
           </button>
         </div>
       </header>
+
+      <section className="environment-submodule" aria-labelledby="flood-impact-module-title">
+        <div className="environment-submodule-copy">
+          <p className="section-label">โมดูลย่อย · Flood impact</p>
+          <h2 id="flood-impact-module-title">ผลกระทบน้ำท่วมรายแปลง — ระยอง</h2>
+          <p>
+            เปรียบเทียบภาพดาวเทียมหลังเหตุการณ์น้ำท่วมกับภาพโดรนของ 19 แปลง
+            เพื่อประกอบการตรวจสอบพื้นที่ ไม่ใช่การยืนยันความเสียหายโดยอัตโนมัติ
+          </p>
+        </div>
+        <a
+          className="environment-submodule-link"
+          href={PLOT_FLOOD_IMPACT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="เปิด Plot Flood Impact ในแท็บใหม่"
+        >
+          เปิด Plot Flood Impact <ExternalLink size={16} aria-hidden="true" />
+        </a>
+      </section>
 
       <section className="heuristic-notice">
         <ShieldAlert size={19} />
