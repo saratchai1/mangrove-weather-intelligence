@@ -33,6 +33,7 @@ import { fetchEnvironmentalOverview } from './environmental/apiClient';
 import { evaluateWaterloggingAlert } from './environmental/waterloggingAlerts';
 import { getStormImpactGeometry } from './environmental/stormProvider';
 import * as turf from '@turf/turf';
+import { formatBangkok } from './shared/observation-core/index.mjs';
 import './EnvironmentalIntelligence.css';
 
 const PLOT_FLOOD_IMPACT_URL = 'https://plot-flood-impact.saratchai.workers.dev/';
@@ -69,11 +70,7 @@ function formatNumber(value, decimals = 0) {
 
 function formatDateTime(value) {
   if (!value) return '-';
-  return new Intl.DateTimeFormat('th-TH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Bangkok',
-  }).format(new Date(value));
+  return formatBangkok(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function formatDay(value, weekday = true) {
@@ -81,21 +78,12 @@ function formatDay(value, weekday = true) {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
     ? new Date(`${value}T00:00:00+07:00`)
     : new Date(value);
-  return new Intl.DateTimeFormat('th-TH', {
-    weekday: weekday ? 'short' : undefined,
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'Asia/Bangkok',
-  }).format(date);
+  return formatBangkok(date, { weekday: weekday ? 'short' : undefined, day: 'numeric', month: 'short' });
 }
 
 function formatTime(value) {
   if (!value) return 'ไม่มีฝนเด่นชัด';
-  return new Intl.DateTimeFormat('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Bangkok',
-  }).format(new Date(value));
+  return formatBangkok(value, { hour: '2-digit', minute: '2-digit' });
 }
 
 function escapeHtml(value) {
@@ -1042,6 +1030,26 @@ export default function EnvironmentalIntelligence() {
           aria-label="เปิด Plot Flood Impact ในแท็บใหม่"
         >
           เปิด Plot Flood Impact <ExternalLink size={16} aria-hidden="true" />
+        </a>
+      </section>
+
+      <section className="environment-submodule" aria-labelledby="sat-flood-module-title">
+        <div className="environment-submodule-copy">
+          <p className="section-label">โมดูลย่อย · Local-first / Private</p>
+          <h2 id="sat-flood-module-title">SAT FLOOD — กรุงเทพฯ ปริมณฑล และภาคกลาง</h2>
+          <p>
+            วิเคราะห์พื้นที่ตรวจพบน้ำจาก GeoJSON ในเบราว์เซอร์ โดยคงข้อมูลไว้ในเครื่องของผู้ใช้
+            Repository นี้เป็น Private และยังไม่มี URL โฮสต์ที่ยืนยันได้ จึงแสดงเฉพาะทางเข้าต้นทางสำหรับผู้มีสิทธิ์
+          </p>
+        </div>
+        <a
+          className="environment-submodule-link"
+          href="https://github.com/saratchai1/sat-flood"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="เปิด GitHub SAT FLOOD เฉพาะผู้ได้รับสิทธิ์"
+        >
+          GitHub (Private) <ExternalLink size={16} aria-hidden="true" />
         </a>
       </section>
 
